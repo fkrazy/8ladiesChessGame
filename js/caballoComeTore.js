@@ -23,11 +23,22 @@ const caballo = `
 <i class="d-block d-sm-none fas fa-chess-knight fa-fw " style="font-size: x-large"></i>
 `
 
+const tower =
+`
+<i class="d-none d-xl-block fas fa-chess-rook fa-fw fa-7x"></i>
+<i class="d-none d-md-block d-xl-none fas fa-chess-rook fa-fw fa-4x"></i>
+<i class="d-none d-sm-block d-md-none fas fa-chess-rook fa-fw fa-3x"></i>
+<i class="d-block d-sm-none fas fa-chess-rook fa-fw " style="font-size: x-large"></i>
+`
+
 function setWinner() {
-  soluciones.push([...camino])
-  mover(camino)
-  setCamino(camino)
   detener = true
+  soluciones.push([...camino])
+  setBeginDashboard()
+  sleep(800).then(() => {
+    mover(camino)
+    setCamino(camino)
+  })
 }
 
 function iniciarSucesor() {
@@ -53,18 +64,22 @@ function iniciarSucesor() {
     if(lastTries[stringLastStep] && lastTries[stringLastStep].some((value) => value === next.join(','))) {
       continue
     }
+    // evito que busque en casillas que ya busco anteriormente o en otro nodo
     if(lastTries.hasOwnProperty(stringLastStep)) {
       lastTries[stringLastStep].push(next.join(','))
     } else lastTries[stringLastStep] = [next.join(',')]
+
     if (casillasGanadoras[next.join(',')]) {
       casillasGanadoras[lastStep.join(',')] = [next].concat(casillasGanadoras[next.join(',')])
       camino = camino.concat(casillasGanadoras[lastStep.join(',')])
       setWinner();
+      return
     }
     if (next[0] === objetivo[0] && next[1] === objetivo[1]) {
       casillasGanadoras[lastStep.join(',')] = [next]
       camino.push(next)
       setWinner();
+      return
     }
     if(next[0]>= 0 && next[0] < 8 && next[1] >= 0 && next[1]< 8 && camino.indexOf(next) === -1) {
       camino.push(next)
@@ -80,6 +95,16 @@ function iniciar () {
     camino.pop()
   } else camino = [inicio]
   iniciarSucesor()
+}
+
+function setBeginDashboard() {
+  document.querySelectorAll('.chess-space').forEach((val => val.innerHTML = ''))
+  let fila = document.querySelector(`.row[data-id='${camino[0][0]}']`)
+  let columna = fila.querySelector(`.col[data-id='${camino[0][1]}']`)
+  columna.innerHTML = caballo
+  fila = document.querySelector(`.row[data-id='${objetivo[0]}']`)
+  columna = fila.querySelector(`.col[data-id='${objetivo[1]}']`)
+  columna.innerHTML = tower
 }
 
 function mover(camino, paso = 0) {
